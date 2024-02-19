@@ -43,8 +43,8 @@ class Ball:
         self.pos += elapsed_time * self.vel
 
     def update(self, pos, vel):
-        self.pos = np.array(pos, dtype=np.float)
-        self.vel = np.array(vel, dtype=np.float)
+        self.pos = np.array(pos, dtype=np.float32)
+        self.vel = np.array(vel, dtype=np.float32)
 
     def is_colliding(self, ball):
         d = np.linalg.norm(self.pos - ball.pos, ord=2)
@@ -163,7 +163,8 @@ class WaterWorldEnv(BaseEnv):
         self.is_rendering = False
         self.game_display = None
 
-    def _check_sequences(self, sequences):
+    @staticmethod
+    def _check_sequences(sequences):
         for sequence in sequences:
             if sequence.is_strict and len(sequences) > 1:
                 raise Exception("Error: Sequences containing one strict subsequence must only contain this item!")
@@ -179,7 +180,8 @@ class WaterWorldEnv(BaseEnv):
         while True:
             pos = 2 * self.ball_radius + random_gen.random() * (self.max_x - 2 * self.ball_radius), \
                   2 * self.ball_radius + random_gen.random() * (self.max_y - 2 * self.ball_radius)
-            if not self._is_colliding(pos) and np.linalg.norm(self.agent.pos - np.array(pos), ord=2) > 4 * self.ball_radius:
+            if not self._is_colliding(pos) and np.linalg.norm(self.agent.pos - np.array(pos),
+                                                              ord=2) > 4 * self.ball_radius:
                 break
         return pos, vel
 
@@ -251,7 +253,7 @@ class WaterWorldEnv(BaseEnv):
         if is_done:
             self.is_game_over = True
 
-        return self._get_features(), reward, is_done, observations
+        return self._get_features(), reward, is_done, False, observations
 
     def _step(self, observations):
         reached_terminal_state = self._update_state(observations)
@@ -282,7 +284,8 @@ class WaterWorldEnv(BaseEnv):
             else:
                 if self.obs_to_avoid is not None and self._contains_observable_to_avoid(observations):
                     return True
-                while current_index < len(sequence.sequence) and self._is_subgoal_in_observation(sequence.sequence[current_index], observations):
+                while current_index < len(sequence.sequence) and self._is_subgoal_in_observation(
+                        sequence.sequence[current_index], observations):
                     current_index += 1
                 self.state[i] = current_index
 
@@ -294,7 +297,8 @@ class WaterWorldEnv(BaseEnv):
                 return True
         return False
 
-    def _is_subgoal_in_observation(self, subgoal, observation):
+    @staticmethod
+    def _is_subgoal_in_observation(subgoal, observation):
         for s in subgoal:
             if s not in observation:
                 return False
@@ -327,11 +331,11 @@ class WaterWorldEnv(BaseEnv):
                 # if the balls are colliding, they are not included because there is nothing the agent can do about it
                 b = balls[i]
                 init = 4 * (i + 1)
-                features[init:init+2] = (b.pos - agent.pos) / pos_max
-                features[init+2:init+4] = (b.vel - agent.vel) / vel_max
+                features[init:init + 2] = (b.pos - agent.pos) / pos_max
+                features[init + 2:init + 4] = (b.vel - agent.vel) / vel_max
         else:
             n_features = 4 + len(balls) * 2
-            features = np.zeros(n_features, dtype=np.float)
+            features = np.zeros(n_features, dtype=np.float32)
 
             pos_max = np.array([float(self.max_x), float(self.max_y)])
 
@@ -341,12 +345,12 @@ class WaterWorldEnv(BaseEnv):
             for i in range(len(balls)):
                 b = balls[i]
                 init = 2 * i + 4
-                features[init:init+2] = (b.pos - agent.pos) / pos_max
+                features[init:init + 2] = (b.pos - agent.pos) / pos_max
 
         return features
 
-    def reset(self):
-        super().reset()
+    def reset(self, seed=None, options=None):
+        obs, info = super().reset()
 
         self.last_strict_obs = None
 
@@ -375,7 +379,7 @@ class WaterWorldEnv(BaseEnv):
         # reset current index in each sequence
         self.state = [0] * len(self.sequences)
 
-        return self._get_features()
+        return self._get_features(), info
 
     def render(self, mode='human'):
         if not self.is_rendering:
@@ -396,7 +400,8 @@ class WaterWorldEnv(BaseEnv):
         pygame.draw.circle(game_display, WaterWorldEnv.RENDERING_COLORS[ball.color],
                            self._get_ball_position(ball, self.max_y), ball.radius, thickness)
 
-    def _get_ball_position(self, ball, max_y):
+    @staticmethod
+    def _get_ball_position(ball, max_y):
         return int(round(ball.pos[0])), int(max_y) - int(round(ball.pos[1]))
 
     def close(self):
@@ -465,7 +470,8 @@ class WaterWorldEnv(BaseEnv):
             for l in range(len(symbols) + 1):
                 for subset in itertools.combinations(symbols, l):
                     derived_tuple = self._get_derived_sequence_tuple_from_assignment(seq_tuple, subset)
-                    if seq_tuple != derived_tuple:  # if the derivation is the same than the original sequence, discard it
+                    if seq_tuple != derived_tuple:
+                        # if the derivation is the same than the original sequence, discard it
                         if derived_tuple not in derived_to_transitions:
                             derived_to_transitions[derived_tuple] = []
                         derived_to_transitions[derived_tuple].append(subset)
@@ -536,13 +542,15 @@ class WaterWorldEnv(BaseEnv):
 
         return tuple(derived_tuple)
 
-    def _is_symbol_false_in_all_arrays(self, symbol, arrays):
+    @staticmethod
+    def _is_symbol_false_in_all_arrays(symbol, arrays):
         for array in arrays:
             if symbol in array:
                 return False
         return True
 
-    def _is_symbol_true_in_all_arrays(self, symbol, arrays):
+    @staticmethod
+    def _is_symbol_true_in_all_arrays(symbol, arrays):
         for array in arrays:
             if symbol not in array:
                 return False
@@ -590,7 +598,7 @@ class WaterWorldEnv(BaseEnv):
                 a = random.choice(list(actions))
 
             # executing the action
-            _, reward, is_done, _ = self.step(a, t_delta)
+            _, reward, is_done, truncated, _ = self.step(a, t_delta)
             total_reward += reward
 
             # printing image

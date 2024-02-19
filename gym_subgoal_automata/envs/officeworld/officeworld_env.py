@@ -91,12 +91,12 @@ class OfficeWorldEnv(GridWorldEnv):
     """
     MAP_GENERATION_FIELD = "generation"  # how to assign the objects to different tiles in the map
 
-    RANDOM_MAP_GENERATION = "random"                                       # assign objects randomly
-    NUM_PLANTS_FIELD = "num_plants"                                        # how many plants/decorations to generate
-    NUM_COFFEES_FIELD = "num_coffees"                                      # how many coffee locations to generate
+    RANDOM_MAP_GENERATION = "random"  # assign objects randomly
+    NUM_PLANTS_FIELD = "num_plants"  # how many plants/decorations to generate
+    NUM_COFFEES_FIELD = "num_coffees"  # how many coffee locations to generate
     ALLOW_SHARE_LOCATION_COFFEE_MAIL = "allow_share_location_coffee_mail"  # the coffee and the mail can share location
-    ALLOW_COFFEE_MAIL_IN_ROOM = "allow_coffee_mail_in_room"                # allow to generate coffee and/or mail inside
-                                                                           # a room (a-d, office)
+    ALLOW_COFFEE_MAIL_IN_ROOM = "allow_coffee_mail_in_room"  # allow to generate coffee and/or mail inside
+    # a room (a-d, office)
 
     PARAMS_MAP_GENERATION = "params"  # use the object assignment specified in the MAP_PARAM parameter in 'params'
     MAP_PARAM = "map"
@@ -108,14 +108,14 @@ class OfficeWorldEnv(GridWorldEnv):
     def __init__(self, params=None):
         super().__init__(params)
 
-        self.agent = None       # agent's location
+        self.agent = None  # agent's location
         self.prev_agent = None  # previous agent location
         self.init_agent = None  # agent's initial position, for resetting
 
-        self.locations = {}     # location of the office, a, b, c and d
-        self.coffee = set()     # coffee positions
-        self.mail = None        # mail position
-        self.walls = set()      # pairs of locations between which there is a wall
+        self.locations = {}  # location of the office, a, b, c and d
+        self.coffee = set()  # coffee positions
+        self.mail = None  # mail position
+        self.walls = set()  # pairs of locations between which there is a wall
         self.corridor_locations = {(2, 1), (3, 1), (5, 1), (6, 1), (8, 1), (9, 1),
                                    (2, 7), (3, 7), (5, 7), (6, 7), (8, 7), (9, 7),
                                    (1, 2), (1, 3), (1, 5), (1, 6),
@@ -139,10 +139,13 @@ class OfficeWorldEnv(GridWorldEnv):
         self.observation_space = spaces.Discrete(self._get_num_states())
 
         # random generation parameters
-        self.allow_coffee_and_mail_in_room = utils.get_param(self.params, OfficeWorldEnv.ALLOW_COFFEE_MAIL_IN_ROOM, True)
-        self.can_share_location_coffee_mail = utils.get_param(self.params, OfficeWorldEnv.ALLOW_SHARE_LOCATION_COFFEE_MAIL, True)
+        self.allow_coffee_and_mail_in_room = utils.get_param(self.params, OfficeWorldEnv.ALLOW_COFFEE_MAIL_IN_ROOM,
+                                                             True)
+        self.can_share_location_coffee_mail = utils.get_param(self.params,
+                                                              OfficeWorldEnv.ALLOW_SHARE_LOCATION_COFFEE_MAIL, True)
 
-        self.drop_coffee_on_plant_enable = utils.get_param(self.params, OfficeWorldEnv.DROP_COFFEE_ON_PLANT_ENABLE, False)
+        self.drop_coffee_on_plant_enable = utils.get_param(self.params, OfficeWorldEnv.DROP_COFFEE_ON_PLANT_ENABLE,
+                                                           False)
 
         if params is not None:
             self._load_map()
@@ -173,7 +176,7 @@ class OfficeWorldEnv(GridWorldEnv):
         reward, is_done = self._get_reward(), self.is_terminal()
         self.is_game_over = is_done
 
-        return self._get_state(), reward, is_done, self.get_observations()
+        return self._get_state(), reward, is_done, False, self.get_observations()
 
     def _get_num_states(self):
         num_states = self.width * self.height
@@ -231,7 +234,7 @@ class OfficeWorldEnv(GridWorldEnv):
         if self.agent == self.mail:
             observations.add(OfficeWorldObject.MAIL)
 
-        return observations
+        return {"observations": observations}
 
     def get_observables(self):
         return [OfficeWorldObject.COFFEE, OfficeWorldObject.MAIL, OfficeWorldObject.OFFICE, OfficeWorldObject.PLANT,
@@ -254,8 +257,8 @@ class OfficeWorldEnv(GridWorldEnv):
         if self.drop_coffee_on_plant_enable and self.is_agent_on_plant() and self.has_coffee:
             self.has_coffee = False
 
-    def reset(self):
-        super().reset()
+    def reset(self, seed=None, options=None):
+        obs, info = super().reset()
 
         # set initial state
         self.agent = self.init_agent
@@ -267,11 +270,12 @@ class OfficeWorldEnv(GridWorldEnv):
         # update initial state according to the map layout
         self._update_state()
 
-        return self._get_state()
+        return self._get_state(), info
 
     """
     Map loading methods
     """
+
     def _load_map(self):
         self._load_walls()
 
@@ -295,7 +299,8 @@ class OfficeWorldEnv(GridWorldEnv):
         self.locations[self._generate_office_random_position(random_gen)] = OfficeWorldObject.OFFICE
 
         # locations a, b, c and d
-        for r in [OfficeWorldObject.ROOM_A, OfficeWorldObject.ROOM_B, OfficeWorldObject.ROOM_C, OfficeWorldObject.ROOM_D]:
+        for r in [OfficeWorldObject.ROOM_A, OfficeWorldObject.ROOM_B, OfficeWorldObject.ROOM_C,
+                  OfficeWorldObject.ROOM_D]:
             room_pos = self._generate_room_random_position(random_gen)
             self.locations[room_pos] = r
 
@@ -456,6 +461,7 @@ class OfficeWorldEnv(GridWorldEnv):
     """
     Grid rendering
     """
+
     def render(self, mode='human'):
         self._render_horizontal_line()
         for y in range(self.height - 1, -1, -1):
@@ -505,6 +511,7 @@ class OfficeWorldDeliverCoffeeEnv(OfficeWorldEnv):
     """
     Deliver coffee to the office while avoiding the plants.
     """
+
     def is_goal_achieved(self):
         return self.has_coffee and self.is_agent_at_office()
 
@@ -526,7 +533,8 @@ class OfficeWorldDeliverCoffeeEnv(OfficeWorldEnv):
         else:
             automaton.add_state("u_rej")
             automaton.set_reject_state("u_rej")
-            automaton.add_edge("u0", "u_rej", [OfficeWorldObject.PLANT, "~" + OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE])
+            automaton.add_edge("u0", "u_rej", [OfficeWorldObject.PLANT, "~" + OfficeWorldObject.COFFEE,
+                                               "~" + OfficeWorldObject.OFFICE])
             automaton.add_edge("u1", "u_rej", [OfficeWorldObject.PLANT])
 
         automaton.set_initial_state("u0")
@@ -538,6 +546,7 @@ class OfficeWorldDeliverMailEnv(OfficeWorldEnv):
     """
     Deliver coffee to the office while avoiding the plants.
     """
+
     def is_goal_achieved(self):
         return self.has_mail and self.is_agent_at_office()
 
@@ -550,8 +559,10 @@ class OfficeWorldDeliverMailEnv(OfficeWorldEnv):
         automaton.add_state("u1")
         automaton.add_state("u_acc")
         automaton.add_state("u_rej")
-        automaton.add_edge("u0", "u1", [OfficeWorldObject.MAIL, "~" + OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.PLANT])
-        automaton.add_edge("u0", "u_acc", [OfficeWorldObject.MAIL, OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.PLANT])
+        automaton.add_edge("u0", "u1",
+                           [OfficeWorldObject.MAIL, "~" + OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.PLANT])
+        automaton.add_edge("u0", "u_acc",
+                           [OfficeWorldObject.MAIL, OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.PLANT])
         automaton.add_edge("u0", "u_rej", [OfficeWorldObject.PLANT])
         automaton.add_edge("u1", "u_acc", [OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.PLANT])
         automaton.add_edge("u1", "u_rej", [OfficeWorldObject.PLANT])
@@ -565,6 +576,7 @@ class OfficeWorldDeliverCoffeeAndMailEnv(OfficeWorldEnv):
     """
     Deliver coffee and mail to the office while avoiding the plants.
     """
+
     def is_goal_achieved(self):
         return self.has_coffee and self.has_mail and self.is_agent_at_office()
 
@@ -579,12 +591,17 @@ class OfficeWorldDeliverCoffeeAndMailEnv(OfficeWorldEnv):
         automaton.add_state("u3")
         automaton.add_state("u_acc")
 
-        automaton.add_edge("u0", "u1", [OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.MAIL])
-        automaton.add_edge("u0", "u2", ["~" + OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL])
-        automaton.add_edge("u0", "u3", [OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL])
+        automaton.add_edge("u0", "u1",
+                           [OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.MAIL])
+        automaton.add_edge("u0", "u2",
+                           ["~" + OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL])
+        automaton.add_edge("u0", "u3",
+                           [OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL])
         automaton.add_edge("u0", "u_acc", [OfficeWorldObject.COFFEE, OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL])
-        automaton.add_edge("u1", "u3", ["~" + OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL, "~" + OfficeWorldObject.PLANT])
-        automaton.add_edge("u1", "u_acc", [OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL, "~" + OfficeWorldObject.PLANT])
+        automaton.add_edge("u1", "u3",
+                           ["~" + OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL, "~" + OfficeWorldObject.PLANT])
+        automaton.add_edge("u1", "u_acc",
+                           [OfficeWorldObject.OFFICE, OfficeWorldObject.MAIL, "~" + OfficeWorldObject.PLANT])
         automaton.add_edge("u2", "u3", ["~" + OfficeWorldObject.OFFICE, OfficeWorldObject.COFFEE])
         automaton.add_edge("u2", "u_acc", [OfficeWorldObject.OFFICE, OfficeWorldObject.COFFEE])
         automaton.add_edge("u3", "u_acc", [OfficeWorldObject.OFFICE, "~" + OfficeWorldObject.PLANT])
@@ -595,7 +612,8 @@ class OfficeWorldDeliverCoffeeAndMailEnv(OfficeWorldEnv):
         else:
             automaton.add_state("u_rej")
             automaton.set_reject_state("u_rej")
-            automaton.add_edge("u0", "u_rej", [OfficeWorldObject.PLANT, "~" + OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.MAIL])
+            automaton.add_edge("u0", "u_rej",
+                               [OfficeWorldObject.PLANT, "~" + OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.MAIL])
             automaton.add_edge("u1", "u_rej", [OfficeWorldObject.PLANT])
             automaton.add_edge("u2", "u_rej", [OfficeWorldObject.PLANT, "~" + OfficeWorldObject.COFFEE])
             automaton.add_edge("u3", "u_rej", [OfficeWorldObject.PLANT])
@@ -609,6 +627,7 @@ class OfficeWorldDeliverCoffeeOrMailEnv(OfficeWorldEnv):
     """
     Deliver coffee or the mail to the office while avoiding the plants.
     """
+
     def is_goal_achieved(self):
         return (self.has_coffee or self.has_mail) and self.is_agent_at_office()
 
@@ -636,7 +655,8 @@ class OfficeWorldDeliverCoffeeOrMailEnv(OfficeWorldEnv):
             automaton.set_reject_state("u_rej")
             automaton.add_edge("u0", "u1", [OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.OFFICE])
             automaton.add_edge("u0", "u1", [OfficeWorldObject.MAIL, "~" + OfficeWorldObject.OFFICE])
-            automaton.add_edge("u0", "u_rej", [OfficeWorldObject.PLANT, "~" + OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.MAIL])
+            automaton.add_edge("u0", "u_rej",
+                               [OfficeWorldObject.PLANT, "~" + OfficeWorldObject.COFFEE, "~" + OfficeWorldObject.MAIL])
             automaton.add_edge("u1", "u_rej", [OfficeWorldObject.PLANT])
 
         automaton.set_initial_state("u0")
@@ -648,10 +668,11 @@ class OfficeWorldPatrolABEnv(OfficeWorldEnv):
     """
     Visit rooms A and B (in that order) while avoiding the plants.
     """
+
     def is_goal_achieved(self):
         if self.agent in self.locations:
             return self.locations[self.agent] == OfficeWorldObject.ROOM_B and \
-                   self.visited_rooms == OfficeWorldRoomVisits.VISITED_A
+                self.visited_rooms == OfficeWorldRoomVisits.VISITED_A
         return False
 
     def get_restricted_observables(self):
@@ -678,11 +699,12 @@ class OfficeWorldPatrolABStrictEnv(OfficeWorldPatrolABEnv):
     Visit rooms A and B (in that order) while avoiding the plants. The order is *strict*, i.e. B cannot be visited
     before A.
     """
+
     def is_deadend(self):
         if self.agent in self.locations:
             location = self.locations[self.agent]
             if (self.visited_rooms == OfficeWorldRoomVisits.VISITED_NONE and location in [OfficeWorldObject.ROOM_B]) or \
-               (self.visited_rooms == OfficeWorldRoomVisits.VISITED_A and location in [OfficeWorldObject.ROOM_A]):
+                    (self.visited_rooms == OfficeWorldRoomVisits.VISITED_A and location in [OfficeWorldObject.ROOM_A]):
                 return True
         return super().is_deadend()
 
@@ -697,9 +719,11 @@ class OfficeWorldPatrolABCEnv(OfficeWorldEnv):
     """
     Visit rooms A, B and C (in that order) while avoiding the plants.
     """
+
     def is_goal_achieved(self):
         if self.agent in self.locations:
-            return self.locations[self.agent] == OfficeWorldObject.ROOM_C and self.visited_rooms == OfficeWorldRoomVisits.VISITED_AB
+            return self.locations[
+                self.agent] == OfficeWorldObject.ROOM_C and self.visited_rooms == OfficeWorldRoomVisits.VISITED_AB
         return False
 
     def get_restricted_observables(self):
@@ -729,15 +753,16 @@ class OfficeWorldPatrolABCStrictEnv(OfficeWorldPatrolABCEnv):
     Visit rooms A, B and C (in that order) while avoiding the plants. The order is *strict*. For example, B cannot be
     visited before A, and A cannot be visited after visiting B.
     """
+
     def is_deadend(self):
         if self.agent in self.locations:
             location = self.locations[self.agent]
             if (self.visited_rooms == OfficeWorldRoomVisits.VISITED_NONE and location in [OfficeWorldObject.ROOM_B,
                                                                                           OfficeWorldObject.ROOM_C]) or \
-               (self.visited_rooms == OfficeWorldRoomVisits.VISITED_A and location in [OfficeWorldObject.ROOM_A,
-                                                                                       OfficeWorldObject.ROOM_C]) or \
-               (self.visited_rooms == OfficeWorldRoomVisits.VISITED_AB and location in [OfficeWorldObject.ROOM_A,
-                                                                                        OfficeWorldObject.ROOM_B]):
+                    (self.visited_rooms == OfficeWorldRoomVisits.VISITED_A and location in [OfficeWorldObject.ROOM_A,
+                                                                                            OfficeWorldObject.ROOM_C]) or \
+                    (self.visited_rooms == OfficeWorldRoomVisits.VISITED_AB and location in [OfficeWorldObject.ROOM_A,
+                                                                                             OfficeWorldObject.ROOM_B]):
                 return True
         return super().is_deadend()
 
@@ -756,9 +781,11 @@ class OfficeWorldPatrolABCDEnv(OfficeWorldEnv):
     """
     Visit rooms A, B, C and D (in that order) while avoiding the plants.
     """
+
     def is_goal_achieved(self):
         if self.agent in self.locations:
-            return self.locations[self.agent] == OfficeWorldObject.ROOM_D and self.visited_rooms == OfficeWorldRoomVisits.VISITED_ABC
+            return self.locations[
+                self.agent] == OfficeWorldObject.ROOM_D and self.visited_rooms == OfficeWorldRoomVisits.VISITED_ABC
         return False
 
     def get_restricted_observables(self):
@@ -792,21 +819,22 @@ class OfficeWorldPatrolABCDStrictEnv(OfficeWorldPatrolABCDEnv):
     Visit rooms A, B, C and D (in that order) while avoiding the plants. The order is *strict*. For example, B cannot be
     visited before A, and A cannot be visited after visiting B.
     """
+
     def is_deadend(self):
         if self.agent in self.locations:
             location = self.locations[self.agent]
             if (self.visited_rooms == OfficeWorldRoomVisits.VISITED_NONE and location in [OfficeWorldObject.ROOM_B,
                                                                                           OfficeWorldObject.ROOM_C,
                                                                                           OfficeWorldObject.ROOM_D]) or \
-               (self.visited_rooms == OfficeWorldRoomVisits.VISITED_A and location in [OfficeWorldObject.ROOM_A,
-                                                                                       OfficeWorldObject.ROOM_C,
-                                                                                       OfficeWorldObject.ROOM_D]) or \
-               (self.visited_rooms == OfficeWorldRoomVisits.VISITED_AB and location in [OfficeWorldObject.ROOM_A,
-                                                                                        OfficeWorldObject.ROOM_B,
-                                                                                        OfficeWorldObject.ROOM_D]) or \
-               (self.visited_rooms == OfficeWorldRoomVisits.VISITED_ABC and location in [OfficeWorldObject.ROOM_A,
-                                                                                         OfficeWorldObject.ROOM_B,
-                                                                                         OfficeWorldObject.ROOM_C]):
+                    (self.visited_rooms == OfficeWorldRoomVisits.VISITED_A and location in [OfficeWorldObject.ROOM_A,
+                                                                                            OfficeWorldObject.ROOM_C,
+                                                                                            OfficeWorldObject.ROOM_D]) or \
+                    (self.visited_rooms == OfficeWorldRoomVisits.VISITED_AB and location in [OfficeWorldObject.ROOM_A,
+                                                                                             OfficeWorldObject.ROOM_B,
+                                                                                             OfficeWorldObject.ROOM_D]) or \
+                    (self.visited_rooms == OfficeWorldRoomVisits.VISITED_ABC and location in [OfficeWorldObject.ROOM_A,
+                                                                                              OfficeWorldObject.ROOM_B,
+                                                                                              OfficeWorldObject.ROOM_C]):
                 return True
         return super().is_deadend()
 

@@ -38,9 +38,9 @@ class BaseEnv(ABC, gym.Env):
         pass
 
     @abstractmethod
-    def reset(self):
+    def reset(self, seed=None, options=None):
         self.is_game_over = False
-        return None
+        return None, {}
 
     @abstractmethod
     def render(self, mode='human'):

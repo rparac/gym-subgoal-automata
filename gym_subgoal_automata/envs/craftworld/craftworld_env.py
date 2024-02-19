@@ -5,6 +5,7 @@ from gym_subgoal_automata.envs.gridworld.gridworld_env import GridWorldEnv, Grid
 from gym_subgoal_automata.utils.subgoal_automaton import SubgoalAutomaton
 from gym_subgoal_automata.utils import utils
 
+
 class CraftWorldObject:
     AGENT = "A"
     WOOD = "a"
@@ -77,18 +78,20 @@ class CraftWorldEnv(GridWorldEnv, ABC):
     def __init__(self, params=None):
         super().__init__(params)
 
-        self.agent = None       # agent's location
+        self.agent = None  # agent's location
         self.prev_agent = None  # previous agent location
         self.init_agent = None  # agent's initial position, for resetting
 
-        self.locations = {}     # locations of the objects
+        self.locations = {}  # locations of the objects
 
         # grid size
         self.height = utils.get_param(params, CraftWorldEnv.GRID_HEIGHT, 39)
         self.width = utils.get_param(params, CraftWorldEnv.GRID_WIDTH, 39)
         self.observation_space = spaces.Discrete(self._get_num_states())
 
-        self.enforce_single_observable_per_location = utils.get_param(params, CraftWorldEnv.ENFORCE_SINGLE_OBSERVARBLE_PER_LOCATION, True)
+        self.enforce_single_observable_per_location = utils.get_param(params,
+                                                                      CraftWorldEnv.ENFORCE_SINGLE_OBSERVARBLE_PER_LOCATION,
+                                                                      True)
 
         # the completion of the task is checked against the ground truth automaton
         self.automaton = self.get_automaton()
@@ -122,7 +125,7 @@ class CraftWorldEnv(GridWorldEnv, ABC):
         reward = 1.0 if self.is_goal_achieved() else 0.0
         self.is_game_over = self.is_terminal()
 
-        return self._get_state(), reward, self.is_game_over, self.get_observations()
+        return self._get_state(), reward, self.is_game_over, False, self.get_observations()
 
     def _get_num_states(self):
         return self.width * self.height
@@ -145,7 +148,7 @@ class CraftWorldEnv(GridWorldEnv, ABC):
                 CraftWorldObject.FACTORY, CraftWorldObject.IRON, CraftWorldObject.BRIDGE, CraftWorldObject.AXE]
 
     def get_observations(self):
-        return set(self.locations[self.agent]) if self.agent in self.locations else {}
+        return {"observations": set(self.locations[self.agent])} if self.agent in self.locations else {}
 
     def is_terminal(self):
         return self.automaton.is_terminal_state(self.automaton_state)
@@ -153,8 +156,8 @@ class CraftWorldEnv(GridWorldEnv, ABC):
     def is_goal_achieved(self):
         return self.automaton.is_accept_state(self.automaton_state)
 
-    def reset(self):
-        super().reset()
+    def reset(self, seed=None, options=None):
+        obs, info = super().reset()
 
         # set initial state
         self.agent = self.init_agent
@@ -164,7 +167,7 @@ class CraftWorldEnv(GridWorldEnv, ABC):
         # update initial automaton state according to the map layout
         self._update_state()
 
-        return self._get_state()
+        return self._get_state(), info
 
     def _update_state(self):
         if self.prev_agent != self.agent:
@@ -227,6 +230,7 @@ class CraftWorldMakePlankEnv(CraftWorldEnv):
     """
     Get wood, use toolshed.
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED]
 
@@ -252,6 +256,7 @@ class CraftWorldMakeStickEnv(CraftWorldEnv):
     """
     Get wood, use workbench.
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH]
 
@@ -277,6 +282,7 @@ class CraftWorldMakeClothEnv(CraftWorldEnv):
     """
     Get grass, use factory.
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.GRASS, CraftWorldObject.FACTORY]
 
@@ -302,6 +308,7 @@ class CraftWorldMakeRopeEnv(CraftWorldEnv):
     """
     Get grass, use toolshed.
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.GRASS, CraftWorldObject.TOOLSHED]
 
@@ -327,6 +334,7 @@ class CraftWorldMakeBridgeEnv(CraftWorldEnv):
     """
     Get iron, get wood, use factory (the iron and wood can be gotten in any order).
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.IRON, CraftWorldObject.WOOD, CraftWorldObject.FACTORY]
 
@@ -346,7 +354,8 @@ class CraftWorldMakeBridgeEnv(CraftWorldEnv):
         else:
             automaton.add_edge("u0", "u1", [CraftWorldObject.IRON, "~" + CraftWorldObject.WOOD])
             automaton.add_edge("u0", "u2", ["~" + CraftWorldObject.IRON, CraftWorldObject.WOOD])
-            automaton.add_edge("u0", "u3", [CraftWorldObject.IRON, CraftWorldObject.WOOD, "~" + CraftWorldObject.FACTORY])
+            automaton.add_edge("u0", "u3",
+                               [CraftWorldObject.IRON, CraftWorldObject.WOOD, "~" + CraftWorldObject.FACTORY])
             automaton.add_edge("u0", "u_acc", [CraftWorldObject.IRON, CraftWorldObject.WOOD, CraftWorldObject.FACTORY])
             automaton.add_edge("u1", "u3", [CraftWorldObject.WOOD, "~" + CraftWorldObject.FACTORY])
             automaton.add_edge("u1", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.FACTORY])
@@ -363,6 +372,7 @@ class CraftWorldMakeBedEnv(CraftWorldEnv):
     """
     Get wood, use toolshed, get grass, use workbench (the grass can be gotten at any time before using the workbench).
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.GRASS, CraftWorldObject.WORKBENCH]
 
@@ -385,21 +395,32 @@ class CraftWorldMakeBedEnv(CraftWorldEnv):
             automaton.add_edge("u4", "u5", [CraftWorldObject.WOOD])
             automaton.add_edge("u5", "u2", [CraftWorldObject.TOOLSHED])
         else:
-            automaton.add_edge("u0", "u1", [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.GRASS])
-            automaton.add_edge("u0", "u2", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
-            automaton.add_edge("u0", "u3", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.GRASS])
+            automaton.add_edge("u0", "u1",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.GRASS])
+            automaton.add_edge("u0", "u2",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.WORKBENCH,
+                                CraftWorldObject.GRASS])
+            automaton.add_edge("u0", "u3",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.GRASS])
             automaton.add_edge("u0", "u4", ["~" + CraftWorldObject.WOOD, CraftWorldObject.GRASS])
-            automaton.add_edge("u0", "u5", [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.GRASS])
-            automaton.add_edge("u0", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
-            automaton.add_edge("u1", "u2", [CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
+            automaton.add_edge("u0", "u5",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.GRASS])
+            automaton.add_edge("u0", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH,
+                                CraftWorldObject.GRASS])
+            automaton.add_edge("u1", "u2",
+                               [CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
             automaton.add_edge("u1", "u3", [CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.GRASS])
             automaton.add_edge("u1", "u5", ["~" + CraftWorldObject.TOOLSHED, CraftWorldObject.GRASS])
-            automaton.add_edge("u1", "u_acc", [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
+            automaton.add_edge("u1", "u_acc",
+                               [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
             automaton.add_edge("u3", "u2", ["~" + CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
             automaton.add_edge("u3", "u_acc", [CraftWorldObject.WORKBENCH, CraftWorldObject.GRASS])
-            automaton.add_edge("u4", "u2", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.WORKBENCH])
+            automaton.add_edge("u4", "u2",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.WORKBENCH])
             automaton.add_edge("u4", "u5", [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED])
-            automaton.add_edge("u4", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH])
+            automaton.add_edge("u4", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH])
             automaton.add_edge("u5", "u2", [CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.WORKBENCH])
             automaton.add_edge("u5", "u_acc", [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH])
         automaton.add_edge("u2", "u_acc", [CraftWorldObject.WORKBENCH])
@@ -413,6 +434,7 @@ class CraftWorldMakeAxeEnv(CraftWorldEnv):
     """
     Get wood, use workbench, get iron, use toolshed (the iron can be gotten at any time before using the toolshed).
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON, CraftWorldObject.TOOLSHED]
 
@@ -435,21 +457,32 @@ class CraftWorldMakeAxeEnv(CraftWorldEnv):
             automaton.add_edge("u4", "u5", [CraftWorldObject.WOOD])
             automaton.add_edge("u5", "u2", [CraftWorldObject.WORKBENCH])
         else:
-            automaton.add_edge("u0", "u1", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u2", [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u3", [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u1",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u2",
+                               [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.TOOLSHED,
+                                CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u3",
+                               [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
             automaton.add_edge("u0", "u4", ["~" + CraftWorldObject.WOOD, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u5", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
-            automaton.add_edge("u1", "u2", [CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u5",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.TOOLSHED,
+                                CraftWorldObject.IRON])
+            automaton.add_edge("u1", "u2",
+                               [CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
             automaton.add_edge("u1", "u3", [CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
             automaton.add_edge("u1", "u5", ["~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
-            automaton.add_edge("u1", "u_acc", [CraftWorldObject.WORKBENCH, CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
+            automaton.add_edge("u1", "u_acc",
+                               [CraftWorldObject.WORKBENCH, CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
             automaton.add_edge("u3", "u2", ["~" + CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
             automaton.add_edge("u3", "u_acc", [CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
-            automaton.add_edge("u4", "u2", [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.TOOLSHED])
+            automaton.add_edge("u4", "u2",
+                               [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.TOOLSHED])
             automaton.add_edge("u4", "u5", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH])
-            automaton.add_edge("u4", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.TOOLSHED])
+            automaton.add_edge("u4", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.TOOLSHED])
             automaton.add_edge("u5", "u2", [CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.TOOLSHED])
             automaton.add_edge("u5", "u_acc", [CraftWorldObject.WORKBENCH, CraftWorldObject.TOOLSHED])
         automaton.add_edge("u2", "u_acc", [CraftWorldObject.TOOLSHED])
@@ -463,6 +496,7 @@ class CraftWorldMakeShearsEnv(CraftWorldEnv):
     """
     Get wood, get iron, use workbench (the iron and wood can be gotten in any order).
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON]
 
@@ -480,10 +514,12 @@ class CraftWorldMakeShearsEnv(CraftWorldEnv):
             automaton.add_edge("u2", "u1", [CraftWorldObject.IRON])
             automaton.add_edge("u3", "u1", [CraftWorldObject.WOOD])
         else:
-            automaton.add_edge("u0", "u1", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u1",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
             automaton.add_edge("u0", "u2", [CraftWorldObject.WOOD, "~" + CraftWorldObject.IRON])
             automaton.add_edge("u0", "u3", ["~" + CraftWorldObject.WOOD, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
             automaton.add_edge("u2", "u1", ["~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
             automaton.add_edge("u2", "u_acc", [CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
             automaton.add_edge("u3", "u1", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH])
@@ -499,6 +535,7 @@ class CraftWorldGetGoldEnv(CraftWorldEnv):
     """
     Get iron, get wood, use factory, use bridge (the iron and wood can be gotten in any order).
     """
+
     def get_restricted_observables(self):
         return [CraftWorldObject.IRON, CraftWorldObject.WOOD, CraftWorldObject.FACTORY, CraftWorldObject.BRIDGE]
 
@@ -518,17 +555,24 @@ class CraftWorldGetGoldEnv(CraftWorldEnv):
             automaton.add_edge("u3", "u4", [CraftWorldObject.IRON])
             automaton.add_edge("u4", "u1", [CraftWorldObject.FACTORY])
         else:
-            automaton.add_edge("u0", "u1", [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, CraftWorldObject.IRON, "~" + CraftWorldObject.BRIDGE])
+            automaton.add_edge("u0", "u1", [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, CraftWorldObject.IRON,
+                                            "~" + CraftWorldObject.BRIDGE])
             automaton.add_edge("u0", "u2", ["~" + CraftWorldObject.WOOD, CraftWorldObject.IRON])
             automaton.add_edge("u0", "u3", [CraftWorldObject.WOOD, "~" + CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u4", [CraftWorldObject.WOOD, "~" + CraftWorldObject.FACTORY, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, CraftWorldObject.IRON, CraftWorldObject.BRIDGE])
-            automaton.add_edge("u2", "u1", [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, "~" + CraftWorldObject.BRIDGE])
+            automaton.add_edge("u0", "u4",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.FACTORY, CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, CraftWorldObject.IRON,
+                                               CraftWorldObject.BRIDGE])
+            automaton.add_edge("u2", "u1",
+                               [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, "~" + CraftWorldObject.BRIDGE])
             automaton.add_edge("u2", "u4", [CraftWorldObject.WOOD, "~" + CraftWorldObject.FACTORY])
-            automaton.add_edge("u2", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, CraftWorldObject.BRIDGE])
-            automaton.add_edge("u3", "u1", [CraftWorldObject.FACTORY, CraftWorldObject.IRON, "~" + CraftWorldObject.BRIDGE])
+            automaton.add_edge("u2", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.FACTORY, CraftWorldObject.BRIDGE])
+            automaton.add_edge("u3", "u1",
+                               [CraftWorldObject.FACTORY, CraftWorldObject.IRON, "~" + CraftWorldObject.BRIDGE])
             automaton.add_edge("u3", "u4", ["~" + CraftWorldObject.FACTORY, CraftWorldObject.IRON])
-            automaton.add_edge("u3", "u_acc", [CraftWorldObject.FACTORY, CraftWorldObject.IRON, CraftWorldObject.BRIDGE])
+            automaton.add_edge("u3", "u_acc",
+                               [CraftWorldObject.FACTORY, CraftWorldObject.IRON, CraftWorldObject.BRIDGE])
             automaton.add_edge("u4", "u1", [CraftWorldObject.FACTORY, "~" + CraftWorldObject.BRIDGE])
             automaton.add_edge("u4", "u_acc", [CraftWorldObject.FACTORY, CraftWorldObject.BRIDGE])
         automaton.add_edge("u1", "u_acc", [CraftWorldObject.BRIDGE])
@@ -542,8 +586,10 @@ class CraftWorldGetGemEnv(CraftWorldEnv):
     """
     Get wood, use workbench, get iron, use toolshed, use axe (the iron can be gotten at any time before using the toolshed).
     """
+
     def get_restricted_observables(self):
-        return [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON, CraftWorldObject.TOOLSHED, CraftWorldObject.AXE]
+        return [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON, CraftWorldObject.TOOLSHED,
+                CraftWorldObject.AXE]
 
     def get_automaton(self):
         automaton = SubgoalAutomaton()
@@ -566,28 +612,50 @@ class CraftWorldGetGemEnv(CraftWorldEnv):
             automaton.add_edge("u5", "u6", [CraftWorldObject.WORKBENCH])
             automaton.add_edge("u6", "u2", [CraftWorldObject.TOOLSHED])
         else:
-            automaton.add_edge("u0", "u1", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u2", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON, "~" + CraftWorldObject.AXE])
-            automaton.add_edge("u0", "u3", [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u1",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u2",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH,
+                                CraftWorldObject.IRON, "~" + CraftWorldObject.AXE])
+            automaton.add_edge("u0", "u3",
+                               [CraftWorldObject.WOOD, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
             automaton.add_edge("u0", "u4", ["~" + CraftWorldObject.WOOD, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u5", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u6", [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
-            automaton.add_edge("u0", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON, CraftWorldObject.AXE])
-            automaton.add_edge("u1", "u2", [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON, "~" + CraftWorldObject.AXE])
+            automaton.add_edge("u0", "u5",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u6",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH,
+                                CraftWorldObject.IRON])
+            automaton.add_edge("u0", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH,
+                                CraftWorldObject.IRON, CraftWorldObject.AXE])
+            automaton.add_edge("u1", "u2",
+                               [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON,
+                                "~" + CraftWorldObject.AXE])
             automaton.add_edge("u1", "u3", [CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.IRON])
             automaton.add_edge("u1", "u5", ["~" + CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
-            automaton.add_edge("u1", "u6", ["~" + CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
-            automaton.add_edge("u1", "u_acc", [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON, CraftWorldObject.AXE])
-            automaton.add_edge("u3", "u2", [CraftWorldObject.TOOLSHED, CraftWorldObject.IRON, "~" + CraftWorldObject.AXE])
+            automaton.add_edge("u1", "u6",
+                               ["~" + CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON])
+            automaton.add_edge("u1", "u_acc",
+                               [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.IRON,
+                                CraftWorldObject.AXE])
+            automaton.add_edge("u3", "u2",
+                               [CraftWorldObject.TOOLSHED, CraftWorldObject.IRON, "~" + CraftWorldObject.AXE])
             automaton.add_edge("u3", "u6", ["~" + CraftWorldObject.TOOLSHED, CraftWorldObject.IRON])
             automaton.add_edge("u3", "u_acc", [CraftWorldObject.TOOLSHED, CraftWorldObject.IRON, CraftWorldObject.AXE])
-            automaton.add_edge("u4", "u2", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.AXE])
+            automaton.add_edge("u4", "u2",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH,
+                                "~" + CraftWorldObject.AXE])
             automaton.add_edge("u4", "u5", [CraftWorldObject.WOOD, "~" + CraftWorldObject.WORKBENCH])
-            automaton.add_edge("u4", "u6", [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH])
-            automaton.add_edge("u4", "u_acc", [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.AXE])
-            automaton.add_edge("u5", "u2", [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.AXE])
+            automaton.add_edge("u4", "u6",
+                               [CraftWorldObject.WOOD, "~" + CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH])
+            automaton.add_edge("u4", "u_acc",
+                               [CraftWorldObject.WOOD, CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH,
+                                CraftWorldObject.AXE])
+            automaton.add_edge("u5", "u2",
+                               [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, "~" + CraftWorldObject.AXE])
             automaton.add_edge("u5", "u6", ["~" + CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH])
-            automaton.add_edge("u5", "u_acc", [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.AXE])
+            automaton.add_edge("u5", "u_acc",
+                               [CraftWorldObject.TOOLSHED, CraftWorldObject.WORKBENCH, CraftWorldObject.AXE])
             automaton.add_edge("u6", "u2", [CraftWorldObject.TOOLSHED, "~" + CraftWorldObject.AXE])
             automaton.add_edge("u6", "u_acc", [CraftWorldObject.TOOLSHED, CraftWorldObject.AXE])
         automaton.add_edge("u2", "u_acc", [CraftWorldObject.AXE])

@@ -26,7 +26,8 @@ class GridWorldEnv(BaseEnv, ABC):
 
         self.action_space = spaces.Discrete(4)
 
-    def get_state_id(self, num_states, state_possible_values, state_variables):
+    @staticmethod
+    def get_state_id(num_states, state_possible_values, state_variables):
         cell_index = 0
         content_index = num_states
 
@@ -36,7 +37,8 @@ class GridWorldEnv(BaseEnv, ABC):
 
         return int(cell_index)
 
-    def get_one_hot_state(self, num_states, state_id):
+    @staticmethod
+    def get_one_hot_state(num_states, state_id):
         state = np.zeros(num_states, dtype=np.float32)
         state[state_id] = 1.0
         return state
@@ -62,7 +64,7 @@ class GridWorldEnv(BaseEnv, ABC):
                 action = GridWorldActions.RIGHT
 
             if action is not None:
-                _, reward, is_done, _ = self.step(action)
+                _, reward, is_done, truncated, _ = self.step(action)
                 total_reward += reward
                 self.render()
             else:
