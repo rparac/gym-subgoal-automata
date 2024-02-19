@@ -154,7 +154,7 @@ class OfficeWorldEnv(GridWorldEnv):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         if self.is_game_over:
-            return self._get_state(), 0.0, True, self.get_observations()
+            return self._get_state(), 0.0, True, False, self.get_observations()
 
         target_x, target_y = self.agent
 

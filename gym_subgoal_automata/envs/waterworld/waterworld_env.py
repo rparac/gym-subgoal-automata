@@ -192,7 +192,7 @@ class WaterWorldEnv(BaseEnv):
         return False
 
     def get_observations(self):
-        return {b.color for b in self._get_current_collisions()}
+        return {"observations": {b.color for b in self._get_current_collisions()}}
 
     def get_observables(self):
         return [WaterWorldObservations.RED, WaterWorldObservations.GREEN, WaterWorldObservations.BLUE,
