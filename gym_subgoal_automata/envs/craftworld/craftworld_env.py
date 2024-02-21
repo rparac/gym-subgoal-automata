@@ -157,7 +157,7 @@ class CraftWorldEnv(GridWorldEnv, ABC):
         return self.automaton.is_accept_state(self.automaton_state)
 
     def reset(self, seed=None, options=None):
-        obs, info = super().reset()
+        obs, info = super().reset(seed, options)
 
         # set initial state
         self.agent = self.init_agent

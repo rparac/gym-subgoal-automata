@@ -46,6 +46,7 @@ class GridWorldEnv(BaseEnv, ABC):
     def play(self):
         self.reset()
         self.render()
+        self.old_render()
 
         total_reward = 0.0
         is_done = False
@@ -67,6 +68,7 @@ class GridWorldEnv(BaseEnv, ABC):
                 _, reward, is_done, truncated, _ = self.step(action)
                 total_reward += reward
                 self.render()
+                self.old_render()
             else:
                 print("Invalid action: use 'w' (up), 's' (down), 'a' (left) or 'd' (right).")
 

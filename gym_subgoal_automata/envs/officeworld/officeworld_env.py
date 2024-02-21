@@ -1,5 +1,8 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import random
+
+import numpy as np
+import pygame
 from gym import spaces
 from gym_subgoal_automata.utils.subgoal_automaton import SubgoalAutomaton
 from gym_subgoal_automata.utils import utils
@@ -26,7 +29,7 @@ class OfficeWorldRoomVisits:
     VISITED_POSSIBLE_VALUES = 4
 
 
-class OfficeWorldEnv(GridWorldEnv):
+class OfficeWorldEnv(GridWorldEnv, ABC):
     """
     The Office World environment
     from "Using Reward Machines for High-Level Task Specification and Decomposition in Reinforcement Learning"
@@ -125,6 +128,11 @@ class OfficeWorldEnv(GridWorldEnv):
         # grid size
         self.height = 9
         self.width = 12
+
+        # pygame render
+        self.window_size = 512
+        self.window = None
+        self.clock = None
 
         # state
         self.has_coffee = False
@@ -258,7 +266,7 @@ class OfficeWorldEnv(GridWorldEnv):
             self.has_coffee = False
 
     def reset(self, seed=None, options=None):
-        obs, info = super().reset()
+        obs, info = super().reset(seed, options)
 
         # set initial state
         self.agent = self.init_agent
@@ -463,6 +471,99 @@ class OfficeWorldEnv(GridWorldEnv):
     """
 
     def render(self, mode='human'):
+        pygame.init()
+        if self.window is None and mode == "human":
+            pygame.display.init()
+            self.window = pygame.display.set_mode((self.window_size, self.window_size))
+        if self.clock is None and mode == "human":
+            self.clock = pygame.time.Clock()
+
+        canvas = pygame.Surface((self.window_size, self.window_size))
+        canvas.fill((255, 255, 255))
+
+        agent_x, agent_y = np.array(self.agent)
+        agent_y = self.height - agent_y - 1
+        # TODO: introduce colour variables
+        pygame.draw.circle(
+            canvas,
+            (255, 102, 102),  # R
+            np.array([agent_x * self.pix_width + self.pix_width / 2, agent_y * self.pix_height + self.pix_height / 2]),
+            # (pos_agent + 0.5) * self.pix_height,
+            self.pix_height / 3,
+        )
+        for (pos_x, pos_y), label in self.locations.items():
+            # location of the office, a, b, c and d
+            new_pos_y = self.height - pos_y - 1
+            font = pygame.font.SysFont(None, 50)
+            img = font.render(label, True, (0, 0, 0))
+            width_ = pos_x * self.pix_width + 10
+            height_ = new_pos_y * self.pix_height + 15
+            canvas.blit(img, np.array([width_, height_]))
+
+        # Finally, add some gridlines
+        for y in range(self.height):
+            pygame.draw.line(
+                canvas,
+                0,
+                (0, self.pix_height * y),
+                (self.window_size, self.pix_height * y),
+                width=3,
+            )
+        for x in range(self.width):
+            pygame.draw.line(
+                canvas,
+                0,
+                (self.pix_width * x, 0),
+                (self.pix_width * x, self.window_size),
+                width=3,
+            )
+
+        for ((wall_start_x, wall_start_y), (wall_end_x, wall_end_y)) in self.walls:
+            start_pos = (wall_start_x * self.pix_width, (self.height - wall_start_y - 1) * self.pix_height)
+            end_pos = ((wall_end_x + 1) * self.pix_width, (self.height - wall_end_y) * self.pix_height)
+            wall_len_x = abs(wall_end_x + 1 - wall_start_x)
+            wall_len_y = abs((self.height - wall_start_y - 1) - (self.height - wall_end_y))
+            wall_len = wall_len_x + wall_len_y
+            # TODO: see why some walls seem off
+            if wall_len > 1:
+                continue
+
+            pygame.draw.line(
+                canvas,
+                (255, 0, 0),
+                start_pos,
+                end_pos,
+                width=5,
+            )
+
+        # TODO: should we include these as well?
+        # coffee_x, coffee_y = self.coffee
+        # mail_x, mail_y = self.mail
+
+        if mode == "human":
+            # The following line copies our drawings from `canvas` to the visible window
+            self.window.blit(canvas, canvas.get_rect())
+            pygame.event.pump()
+            pygame.display.update()
+
+            # We need to ensure that human-rendering occurs at the predefined framerate.
+            # The following line will automatically add a delay to keep the framerate stable.
+            render_fps = 4
+            self.clock.tick(render_fps)
+        else:  # rgb_array
+            return np.transpose(
+                np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
+            )
+
+    @property
+    def pix_height(self):
+        return self.window_size / self.height
+
+    @property
+    def pix_width(self):
+        return self.window_size / self.width
+
+    def old_render(self, mode='human'):
         self._render_horizontal_line()
         for y in range(self.height - 1, -1, -1):
             print("|", end="")

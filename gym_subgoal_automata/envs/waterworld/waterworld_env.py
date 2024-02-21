@@ -350,7 +350,7 @@ class WaterWorldEnv(BaseEnv):
         return features
 
     def reset(self, seed=None, options=None):
-        obs, info = super().reset()
+        obs, info = super().reset(seed, options)
 
         self.last_strict_obs = None
 
