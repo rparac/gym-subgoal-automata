@@ -491,14 +491,14 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
             # (pos_agent + 0.5) * self.pix_height,
             self.pix_height / 3,
         )
+
         for (pos_x, pos_y), label in self.locations.items():
-            # location of the office, a, b, c and d
-            new_pos_y = self.height - pos_y - 1
-            font = pygame.font.SysFont(None, 50)
-            img = font.render(label, True, (0, 0, 0))
-            width_ = pos_x * self.pix_width + 10
-            height_ = new_pos_y * self.pix_height + 15
-            canvas.blit(img, np.array([width_, height_]))
+            self._draw_letter(canvas, pos_x, pos_y, label)
+
+        for coffee_x, coffee_y in self.coffee:
+            self._draw_letter(canvas, coffee_x, coffee_y, label="f")
+        mail_x, mail_y = self.mail
+        self._draw_letter(canvas, mail_x, mail_y, label="m")
 
         # Finally, add some gridlines
         for y in range(self.height):
@@ -536,10 +536,6 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
                 width=5,
             )
 
-        # TODO: should we include these as well?
-        # coffee_x, coffee_y = self.coffee
-        # mail_x, mail_y = self.mail
-
         if mode == "human":
             # The following line copies our drawings from `canvas` to the visible window
             self.window.blit(canvas, canvas.get_rect())
@@ -554,6 +550,15 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
             return np.transpose(
                 np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
             )
+
+    def _draw_letter(self, canvas, pos_x, pos_y, label):
+        # location of the office, a, b, c and d
+        new_pos_y = self.height - pos_y - 1
+        font = pygame.font.SysFont(None, 50)
+        img = font.render(label, True, (0, 0, 0))
+        width_ = pos_x * self.pix_width + 10
+        height_ = new_pos_y * self.pix_height + 15
+        canvas.blit(img, np.array([width_, height_]))
 
     @property
     def pix_height(self):
