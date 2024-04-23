@@ -105,6 +105,7 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
     MAP_PARAM = "map"
 
     PAPER_MAP_GENERATION = "paper"  # use the object assignment given in the reward machines paper
+    CUSTOM_MAP_GENERATION = "custom"  # use the map generated with _load_other_map
 
     DROP_COFFEE_ON_PLANT_ENABLE = "drop_coffee_enable"  # whether the agent can drop the coffee when it steps on a plant
 
@@ -126,8 +127,8 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
                                    (10, 2), (10, 3), (10, 5), (10, 6)}
 
         # grid size
-        self.height = 9
-        self.width = 12
+        self.height = 3
+        self.width = 3
 
         # pygame render
         self.window_size = 512
@@ -140,8 +141,8 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
         self.visited_rooms = OfficeWorldRoomVisits.VISITED_NONE
 
         # possible values for state variables
-        self.num_has_coffee_values = 2
-        self.num_has_mail_values = 2
+        self.num_has_coffee_values = 1
+        self.num_has_mail_values = 0
         self.num_visited_room_values = OfficeWorldRoomVisits.VISITED_POSSIBLE_VALUES
 
         self.observation_space = spaces.Discrete(self._get_num_states())
@@ -294,6 +295,8 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
             self._load_map_from_params()
         elif generation_type == OfficeWorldEnv.PAPER_MAP_GENERATION:
             self._load_paper_map()
+        elif generation_type == OfficeWorldEnv.CUSTOM_MAP_GENERATION:
+            self._load_custom_map()
         else:
             raise RuntimeError("Error: Unknown map generation mode '{}'.".format(generation_type))
 
@@ -391,6 +394,14 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
 
         for location in map[OfficeWorldObject.PLANT]:
             self.locations[location] = OfficeWorldObject.PLANT
+
+    def _load_custom_map(self):
+        self.init_agent = (1, 0)
+
+        self.coffee.add((0, 1))
+        self.locations[(2, 1)] = OfficeWorldObject.OFFICE
+        # Intentionally out of bounds
+        self.mail = (4, 4)
 
     # load map as defined in the original Reward Machines paper
     def _load_paper_map(self):
@@ -611,6 +622,21 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
         for x in range(0, 2 * self.width + 2):
             print("-", end="")
         print()
+
+
+class OfficeWorldGoToCoffeeEnv(OfficeWorldEnv):
+    """
+    Just go to coffee. Can be used for debugging
+    """
+
+    def is_goal_achieved(self):
+        return self.has_coffee
+
+    def get_restricted_observables(self):
+        return [OfficeWorldObject.COFFEE, OfficeWorldObject.OFFICE, OfficeWorldObject.PLANT]
+
+    def get_automaton(self):
+        raise NotImplementedError("Not needed yet")
 
 
 class OfficeWorldDeliverCoffeeEnv(OfficeWorldEnv):

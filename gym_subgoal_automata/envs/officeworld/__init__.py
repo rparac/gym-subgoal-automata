@@ -1,3 +1,4 @@
+from gym_subgoal_automata.envs.officeworld.officeworld_env import OfficeWorldGoToCoffeeEnv
 from gym_subgoal_automata.envs.officeworld.officeworld_env import OfficeWorldDeliverCoffeeEnv
 from gym_subgoal_automata.envs.officeworld.officeworld_env import OfficeWorldDeliverMailEnv
 from gym_subgoal_automata.envs.officeworld.officeworld_env import OfficeWorldDeliverCoffeeAndMailEnv

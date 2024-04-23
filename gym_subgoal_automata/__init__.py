@@ -2,6 +2,11 @@ from gym.envs.registration import register
 
 # OfficeWorld
 register(
+    id='OfficeWorldGoToCoffeeEnv-v0',
+    entry_point='gym_subgoal_automata.envs.officeworld:OfficeWorldGoToCoffeeEnv',
+)
+
+register(
     id='OfficeWorldDeliverCoffee-v0',
     entry_point='gym_subgoal_automata.envs.officeworld:OfficeWorldDeliverCoffeeEnv',
 )
