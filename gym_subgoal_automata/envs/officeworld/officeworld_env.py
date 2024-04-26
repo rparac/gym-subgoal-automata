@@ -127,8 +127,8 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
                                    (10, 2), (10, 3), (10, 5), (10, 6)}
 
         # grid size
-        self.height = 3
-        self.width = 3
+        self.height = 5
+        self.width = 5
 
         # pygame render
         self.window_size = 512
@@ -398,8 +398,8 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
     def _load_custom_map(self):
         self.init_agent = (1, 0)
 
-        self.coffee.add((0, 1))
-        self.locations[(2, 1)] = OfficeWorldObject.OFFICE
+        self.coffee.add((0, 3))
+        self.locations[(4, 2)] = OfficeWorldObject.OFFICE
         # Intentionally out of bounds
         self.mail = (4, 4)
 
