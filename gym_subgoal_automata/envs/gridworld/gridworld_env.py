@@ -1,7 +1,7 @@
 from abc import ABC
 
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 from gym_subgoal_automata.utils import utils
 from gym_subgoal_automata.envs.base.base_env import BaseEnv
 

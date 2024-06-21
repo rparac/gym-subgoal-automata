@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import gym
+import gymnasium as gym
 from gym_subgoal_automata.utils import utils
 
 

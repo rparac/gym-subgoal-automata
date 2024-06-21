@@ -5,7 +5,7 @@ import time
 import numpy as np
 import random
 import pygame
-from gym import spaces
+from gymnasium import spaces
 from gym_subgoal_automata.utils import utils
 from gym_subgoal_automata.utils.subgoal_automaton import SubgoalAutomaton
 from gym_subgoal_automata.envs.base.base_env import BaseEnv
