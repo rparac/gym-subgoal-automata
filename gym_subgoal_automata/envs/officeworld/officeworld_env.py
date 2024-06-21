@@ -470,12 +470,12 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
     Grid rendering
     """
 
-    def render(self, mode='human'):
+    def render(self):
         pygame.init()
-        if self.window is None and mode == "human":
+        if self.window is None and self.render_mode == "human":
             pygame.display.init()
             self.window = pygame.display.set_mode((self.window_size, self.window_size))
-        if self.clock is None and mode == "human":
+        if self.clock is None and self.render_mode == "human":
             self.clock = pygame.time.Clock()
 
         canvas = pygame.Surface((self.window_size, self.window_size))
@@ -536,7 +536,7 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
                 width=5,
             )
 
-        if mode == "human":
+        if self.render_mode == "human":
             # The following line copies our drawings from `canvas` to the visible window
             self.window.blit(canvas, canvas.get_rect())
             pygame.event.pump()
@@ -568,7 +568,7 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
     def pix_width(self):
         return self.window_size / self.width
 
-    def old_render(self, mode='human'):
+    def old_render(self):
         self._render_horizontal_line()
         for y in range(self.height - 1, -1, -1):
             print("|", end="")

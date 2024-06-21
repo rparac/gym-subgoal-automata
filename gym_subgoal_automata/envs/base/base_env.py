@@ -43,7 +43,7 @@ class BaseEnv(ABC, gym.Env):
         return None, {}
 
     @abstractmethod
-    def render(self, mode='human'):
+    def render(self):
         pass
 
     @abstractmethod

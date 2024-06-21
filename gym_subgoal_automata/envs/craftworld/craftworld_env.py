@@ -203,7 +203,7 @@ class CraftWorldEnv(GridWorldEnv, ABC):
     def _is_valid_position(self, pos):
         return 0 <= pos[0] < self.width and 0 <= pos[1] < self.height
 
-    def render(self, mode='human'):
+    def render(self):
         self._render_horizontal_border()
 
         for y in range(self.height - 1, -1, -1):

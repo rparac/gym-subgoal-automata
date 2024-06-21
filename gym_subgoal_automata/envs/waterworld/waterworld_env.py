@@ -381,7 +381,7 @@ class WaterWorldEnv(BaseEnv):
 
         return self._get_features(), info
 
-    def render(self, mode='human'):
+    def render(self):
         if not self.is_rendering:
             pygame.init()
             pygame.display.set_caption("Water World")
