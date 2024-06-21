@@ -75,8 +75,8 @@ class CraftWorldEnv(GridWorldEnv, ABC):
     GRID_WIDTH = "width"
     ENFORCE_SINGLE_OBSERVARBLE_PER_LOCATION = "enforce_single_observable_per_location"
 
-    def __init__(self, params=None):
-        super().__init__(params)
+    def __init__(self, params=None, render_mode=None):
+        super().__init__(params, render_mode)
 
         self.agent = None  # agent's location
         self.prev_agent = None  # previous agent location

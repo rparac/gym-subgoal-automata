@@ -17,8 +17,8 @@ class GridWorldEnv(BaseEnv, ABC):
     HIDE_STATE_VARIABLES = "hide_state_variables"
     USE_ONE_HOT_VECTOR_FIELD = "use_one_hot_vector_states"
 
-    def __init__(self, params=None):
-        super().__init__(params)
+    def __init__(self, params=None, render_mode=None):
+        super().__init__(params, render_mode)
 
         # state properties
         self.hide_state_variables = utils.get_param(self.params, GridWorldEnv.HIDE_STATE_VARIABLES, False)

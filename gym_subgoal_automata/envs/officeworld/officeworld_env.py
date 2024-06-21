@@ -108,8 +108,8 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
 
     DROP_COFFEE_ON_PLANT_ENABLE = "drop_coffee_enable"  # whether the agent can drop the coffee when it steps on a plant
 
-    def __init__(self, params=None):
-        super().__init__(params)
+    def __init__(self, params=None, render_mode=None):
+        super().__init__(params, render_mode)
 
         self.agent = None  # agent's location
         self.prev_agent = None  # previous agent location

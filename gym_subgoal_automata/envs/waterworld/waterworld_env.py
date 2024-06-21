@@ -124,8 +124,8 @@ class WaterWorldEnv(BaseEnv):
     # helps with reproducibility while generalizing to different starting positions
     RANDOM_RESTART = "random_restart"
 
-    def __init__(self, params, sequences, obs_to_avoid=None):
-        super().__init__(params)
+    def __init__(self, params, sequences, obs_to_avoid=None, render_mode=None):
+        super().__init__(params, render_mode)
 
         self.random_restart = utils.get_param(params, WaterWorldEnv.RANDOM_RESTART, True)
         self.num_resets = 0

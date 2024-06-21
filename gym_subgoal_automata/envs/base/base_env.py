@@ -6,12 +6,17 @@ from gym_subgoal_automata.utils import utils
 class BaseEnv(ABC, gym.Env):
     RANDOM_SEED_FIELD = "environment_seed"
 
-    def __init__(self, params=None):
+    metadata = {
+        "render_modes": ["human", "rgb_array"]
+    }
+
+    def __init__(self, params=None, render_mode=None):
         super().__init__()
 
         self.params = params
         self.is_game_over = False
         self.seed = utils.get_param(self.params, BaseEnv.RANDOM_SEED_FIELD)
+        self.render_mode = render_mode
 
     @abstractmethod
     def step(self, action):
