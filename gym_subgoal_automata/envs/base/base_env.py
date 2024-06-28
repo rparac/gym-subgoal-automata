@@ -7,7 +7,8 @@ class BaseEnv(ABC, gym.Env):
     RANDOM_SEED_FIELD = "environment_seed"
 
     metadata = {
-        "render_modes": ["human", "rgb_array"]
+        "render_modes": ["human", "rgb_array"],
+        "render_fps": 10,
     }
 
     def __init__(self, params=None, render_mode=None):
