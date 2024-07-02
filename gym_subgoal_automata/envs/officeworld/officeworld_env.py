@@ -278,7 +278,7 @@ class OfficeWorldEnv(GridWorldEnv, ABC):
         # update initial state according to the map layout
         self._update_state()
 
-        return self._get_state(), info
+        return self._get_state(), self.get_observations()
 
     """
     Map loading methods
