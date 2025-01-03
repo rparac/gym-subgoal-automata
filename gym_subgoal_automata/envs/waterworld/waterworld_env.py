@@ -379,7 +379,7 @@ class WaterWorldEnv(BaseEnv):
         # reset current index in each sequence
         self.state = [0] * len(self.sequences)
 
-        return self._get_features(), info
+        return self._get_features(), self.get_observations()
 
     def render(self):
         if not self.is_rendering:
@@ -614,158 +614,158 @@ class WaterWorldEnv(BaseEnv):
 
 
 class WaterWorldRedGreenEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED, WaterWorldObservations.GREEN], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldBlueCyanEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.BLUE, WaterWorldObservations.CYAN], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldMagentaYellowEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenAndBlueCyanEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED, WaterWorldObservations.GREEN], False),
                      BallSequence([WaterWorldObservations.BLUE, WaterWorldObservations.CYAN], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldBlueCyanAndMagentaYellowEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.BLUE, WaterWorldObservations.CYAN], False),
                      BallSequence([WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenAndMagentaYellowEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED, WaterWorldObservations.GREEN], False),
                      BallSequence([WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenAndBlueCyanAndMagentaYellowEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED, WaterWorldObservations.GREEN], False),
                      BallSequence([WaterWorldObservations.BLUE, WaterWorldObservations.CYAN], False),
                      BallSequence([WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenBlueAndCyanMagentaYellowEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN,
                                    WaterWorldObservations.BLUE], False),
                      BallSequence([WaterWorldObservations.CYAN,
                                    WaterWorldObservations.MAGENTA,
                                    WaterWorldObservations.YELLOW], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenStrictEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN], True)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenBlueStrictEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN,
                                    WaterWorldObservations.BLUE], True)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldCyanMagentaYellowStrictEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.CYAN,
                                    WaterWorldObservations.MAGENTA,
                                    WaterWorldObservations.YELLOW], True)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedAndBlueCyanEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED], False),
                      BallSequence([WaterWorldObservations.BLUE,
                                    WaterWorldObservations.CYAN], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenAndBlueEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN], False),
                      BallSequence([WaterWorldObservations.BLUE], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenBlueEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN,
                                    WaterWorldObservations.BLUE], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenBlueCyanEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN,
                                    WaterWorldObservations.BLUE,
                                    WaterWorldObservations.CYAN], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenJointEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([(WaterWorldObservations.RED, WaterWorldObservations.GREEN)], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedAndGreenAndBlueEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED], False),
                      BallSequence([WaterWorldObservations.GREEN], False),
                      BallSequence([WaterWorldObservations.BLUE], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenBlueCyanYellowEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN,
                                    WaterWorldObservations.BLUE,
                                    WaterWorldObservations.CYAN,
                                    WaterWorldObservations.YELLOW], False)]
-        super().__init__(params, sequences)
+        super().__init__(params, sequences, render_mode=render_mode)
 
 
 class WaterWorldRedGreenAvoidMagentaEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN], False)]
-        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA])
+        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA], render_mode=render_mode)
 
 
 class WaterWorldRedGreenAvoidMagentaYellowEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN], False)]
-        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW])
+        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW], render_mode=render_mode)
 
 
 class WaterWorldRedAvoidMagentaEnv(WaterWorldEnv):
-    def __init__(self, params=None):
+    def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED], False)]
-        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA])
+        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA], render_mode=render_mode)
