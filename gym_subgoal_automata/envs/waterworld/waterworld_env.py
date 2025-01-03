@@ -300,8 +300,9 @@ class WaterWorldEnv(BaseEnv):
     @staticmethod
     def _is_subgoal_in_observation(subgoal, observation):
         for s in subgoal:
-            if s not in observation["observations"]:
-                return False
+            if (isinstance(observation, dict) and s not in observation["observations"]) \
+                or (isinstance(observation, tuple) and s not in observation):
+                    return False
         return True
 
     def is_goal_achieved(self):
