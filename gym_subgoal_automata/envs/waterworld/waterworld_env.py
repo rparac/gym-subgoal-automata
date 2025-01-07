@@ -394,8 +394,13 @@ class WaterWorldEnv(BaseEnv):
         for ball in self.balls:
             self._render_ball(self.game_display, ball, 0)
         self._render_ball(self.game_display, self.agent, 3)
-
-        pygame.display.update()
+        
+        if self.render_mode == "human":
+            pygame.display.update()
+        else:  # rgb_array
+            return np.transpose(
+                np.array(pygame.surfarray.pixels3d(self.game_display)), axes=(1, 0, 2)
+            )
 
     def _render_ball(self, game_display, ball, thickness):
         pygame.draw.circle(game_display, WaterWorldEnv.RENDERING_COLORS[ball.color],
