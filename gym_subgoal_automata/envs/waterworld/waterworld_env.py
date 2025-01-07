@@ -410,7 +410,7 @@ class WaterWorldEnv(BaseEnv):
             self.clock.tick(render_fps)
         else:  # rgb_array
             return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.game_display)), axes=(1, 0, 2)
+                np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
             )
 
     def _render_ball(self, game_display, ball, thickness):
