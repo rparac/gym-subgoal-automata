@@ -156,7 +156,7 @@ class WaterWorldEnv(BaseEnv):
         self.agent = None
         self.balls = []
 
-        self.observation_space = spaces.Discrete(52)  # not exactly correct....
+        self.observation_space = spaces.Box(low=-1, high=1, shape=(52,), dtype=np.float32)
         self.action_space = spaces.Discrete(5)
 
         # rendering attributes
