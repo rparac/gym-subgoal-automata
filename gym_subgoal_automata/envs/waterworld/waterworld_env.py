@@ -160,8 +160,8 @@ class WaterWorldEnv(BaseEnv):
         self.action_space = spaces.Discrete(5)
 
         # rendering attributes
-        self.is_rendering = False
         self.game_display = None
+        self.clock = None
 
     @staticmethod
     def _check_sequences(sequences):
@@ -383,20 +383,31 @@ class WaterWorldEnv(BaseEnv):
         return self._get_features(), self.get_observations()
 
     def render(self):
-        if not self.is_rendering:
-            pygame.init()
+        pygame.init()
+        if self.game_display is None and self.render_mode == "human":
             pygame.display.set_caption("Water World")
             self.game_display = pygame.display.set_mode((self.max_x, self.max_y))
-            self.is_rendering = True
+        if self.clock is None and self.render_mode == "human":
+            self.clock = pygame.time.Clock()
+
+        canvas = pygame.Surface((self.max_x, self.max_y))
 
         # printing image
-        self.game_display.fill((255, 255, 255))
+        canvas.fill((255, 255, 255))
         for ball in self.balls:
-            self._render_ball(self.game_display, ball, 0)
-        self._render_ball(self.game_display, self.agent, 3)
+            self._render_ball(canvas, ball, 0)
+        self._render_ball(canvas, self.agent, 3)
         
         if self.render_mode == "human":
+            # The following line copies our drawings from `canvas` to the visible window
+            self.game_display.blit(canvas, canvas.get_rect())
+            pygame.event.pump()
             pygame.display.update()
+
+            # We need to ensure that human-rendering occurs at the predefined framerate.
+            # The following line will automatically add a delay to keep the framerate stable.
+            render_fps = 4
+            self.clock.tick(render_fps)
         else:  # rgb_array
             return np.transpose(
                 np.array(pygame.surfarray.pixels3d(self.game_display)), axes=(1, 0, 2)
@@ -412,7 +423,6 @@ class WaterWorldEnv(BaseEnv):
 
     def close(self):
         pygame.quit()
-        self.is_rendering = False
 
     def get_automaton(self):
         automaton = SubgoalAutomaton()
