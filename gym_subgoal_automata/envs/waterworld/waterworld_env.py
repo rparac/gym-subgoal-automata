@@ -292,7 +292,7 @@ class WaterWorldEnv(BaseEnv):
         return False
 
     def _contains_observable_to_avoid(self, observation):
-        for o in observation:
+        for o in observation['observations']:
             if o in self.obs_to_avoid:
                 return True
         return False
