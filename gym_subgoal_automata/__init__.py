@@ -58,6 +58,11 @@ register(
 )
 
 register(
+    id='WaterWorldRed-v0',
+    entry_point='gym_subgoal_automata.envs.waterworld:WaterWorldRedEnv'
+)
+
+register(
     id='WaterWorldRedGreen-v0',
     entry_point='gym_subgoal_automata.envs.waterworld:WaterWorldRedGreenEnv'
 )

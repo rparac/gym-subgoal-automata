@@ -628,6 +628,11 @@ class WaterWorldEnv(BaseEnv):
 
         self.close()
 
+# For debugging purposes
+class WaterWorldRedEnv(WaterWorldEnv):
+    def __init__(self, params=None, render_mode=None):
+        sequences = [BallSequence([WaterWorldObservations.RED], False)]
+        super().__init__(params, sequences, render_mode=render_mode)
 
 class WaterWorldRedGreenEnv(WaterWorldEnv):
     def __init__(self, params=None, render_mode=None):

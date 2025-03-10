@@ -1,4 +1,5 @@
 from gym_subgoal_automata.envs.waterworld.waterworld_env import WaterWorldEnv
+from gym_subgoal_automata.envs.waterworld.waterworld_env import WaterWorldRedEnv
 from gym_subgoal_automata.envs.waterworld.waterworld_env import WaterWorldRedGreenEnv
 from gym_subgoal_automata.envs.waterworld.waterworld_env import WaterWorldBlueCyanEnv
 from gym_subgoal_automata.envs.waterworld.waterworld_env import WaterWorldMagentaYellowEnv
