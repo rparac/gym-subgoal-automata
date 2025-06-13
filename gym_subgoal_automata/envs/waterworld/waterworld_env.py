@@ -177,6 +177,9 @@ class WaterWorldEnv(BaseEnv):
             self._resize_fn = transforms
             pygame.init()
 
+        # Allows colliding balls on reset
+        self._simple_reset = utils.get_param(params, "simple_reset", False)
+
     @staticmethod
     def _check_sequences(sequences):
         for sequence in sequences:
@@ -195,7 +198,7 @@ class WaterWorldEnv(BaseEnv):
             pos = 2 * self.ball_radius + random_gen.random() * (self.max_x - 2 * self.ball_radius), \
                   2 * self.ball_radius + random_gen.random() * (self.max_y - 2 * self.ball_radius)
             if not self._is_colliding(pos) and np.linalg.norm(self.agent.pos - np.array(pos),
-                                                              ord=2) > 4 * self.ball_radius:
+                                                              ord=2) > 4 * self.ball_radius or self._simple_reset:
                 break
         return pos, vel
 
