@@ -393,8 +393,8 @@ class WaterWorldEnv(BaseEnv):
         random_gen = random.Random(seed)
 
         # adding the agent
-        pos_a = [2 * self.ball_radius + random_gen.random() * (self.max_x - 2 * self.ball_radius),
-                 2 * self.ball_radius + random_gen.random() * (self.max_y - 2 * self.ball_radius)]
+        pos_a = [2 * self.ball_radius + random_gen.random() * (self.max_x - 4 * self.ball_radius),
+                 2 * self.ball_radius + random_gen.random() * (self.max_y - 4 * self.ball_radius)]
         self.agent = BallAgent("A", self.ball_radius, pos_a, [0.0, 0.0], self.agent_vel_delta, self.agent_vel_max)
 
         # adding the balls
