@@ -5,6 +5,8 @@ import time
 import numpy as np
 import random
 import pygame
+import torchvision
+from PIL import Image
 from gymnasium import spaces
 from gym_subgoal_automata.utils import utils
 from gym_subgoal_automata.utils.subgoal_automaton import SubgoalAutomaton
@@ -163,6 +165,18 @@ class WaterWorldEnv(BaseEnv):
         self.game_display = None
         self.clock = None
 
+        # Image observation
+        self._image_obs = utils.get_param(params, "img_obs", False)
+        self._output_img_dim = utils.get_param(params, "img_dim", 64)
+        if self._image_obs:
+            transforms = torchvision.transforms.Compose([
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Resize((self._output_img_dim, self._output_img_dim)),
+                torchvision.transforms.ToPILImage(),
+            ])
+            self._resize_fn = transforms
+            pygame.init()
+
     @staticmethod
     def _check_sequences(sequences):
         for sequence in sequences:
@@ -301,8 +315,8 @@ class WaterWorldEnv(BaseEnv):
     def _is_subgoal_in_observation(subgoal, observation):
         for s in subgoal:
             if (isinstance(observation, dict) and s not in observation["observations"]) \
-                or (isinstance(observation, tuple) and s not in observation):
-                    return False
+                    or (isinstance(observation, tuple) and s not in observation):
+                return False
         return True
 
     def is_goal_achieved(self):
@@ -313,7 +327,19 @@ class WaterWorldEnv(BaseEnv):
                 return False
         return True
 
+    def _get_image(self):
+        curr_render_mode = self.render_mode
+        self.render_mode = "rgb_array"
+        out = self.render()
+        self.render_mode = curr_render_mode
+
+        img = self._resize_fn(out)
+        return np.array(img)
+
     def _get_features(self):
+        if self._image_obs:
+            return self._get_image()
+
         # absolute position and velocity of the agent + relative positions and velocities of the other balls with
         # respect to the agent
         agent, balls = self.agent, self.balls
@@ -383,7 +409,8 @@ class WaterWorldEnv(BaseEnv):
         return self._get_features(), self.get_observations()
 
     def render(self):
-        pygame.init()
+        if not self._image_obs:
+            pygame.init()
         if self.game_display is None and self.render_mode == "human":
             pygame.display.set_caption("Water World")
             self.game_display = pygame.display.set_mode((self.max_x, self.max_y))
@@ -397,7 +424,7 @@ class WaterWorldEnv(BaseEnv):
         for ball in self.balls:
             self._render_ball(canvas, ball, 0)
         self._render_ball(canvas, self.agent, 3)
-        
+
         if self.render_mode == "human":
             # The following line copies our drawings from `canvas` to the visible window
             self.game_display.blit(canvas, canvas.get_rect())
@@ -628,11 +655,13 @@ class WaterWorldEnv(BaseEnv):
 
         self.close()
 
+
 # For debugging purposes
 class WaterWorldRedEnv(WaterWorldEnv):
     def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED], False)]
         super().__init__(params, sequences, render_mode=render_mode)
+
 
 class WaterWorldRedGreenEnv(WaterWorldEnv):
     def __init__(self, params=None, render_mode=None):
@@ -783,7 +812,8 @@ class WaterWorldRedGreenAvoidMagentaYellowEnv(WaterWorldEnv):
     def __init__(self, params=None, render_mode=None):
         sequences = [BallSequence([WaterWorldObservations.RED,
                                    WaterWorldObservations.GREEN], False)]
-        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW], render_mode=render_mode)
+        super().__init__(params, sequences, [WaterWorldObservations.MAGENTA, WaterWorldObservations.YELLOW],
+                         render_mode=render_mode)
 
 
 class WaterWorldRedAvoidMagentaEnv(WaterWorldEnv):
