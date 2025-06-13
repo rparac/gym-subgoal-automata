@@ -197,8 +197,8 @@ class WaterWorldEnv(BaseEnv):
         while True:
             pos = 2 * self.ball_radius + random_gen.random() * (self.max_x - 2 * self.ball_radius), \
                   2 * self.ball_radius + random_gen.random() * (self.max_y - 2 * self.ball_radius)
-            if not self._is_colliding(pos) and np.linalg.norm(self.agent.pos - np.array(pos),
-                                                              ord=2) > 4 * self.ball_radius or self._simple_reset:
+            if (not self._is_colliding(pos) or self._simple_reset) \
+                    and np.linalg.norm(self.agent.pos - np.array(pos), ord=2) > 4 * self.ball_radius:
                 break
         return pos, vel
 
