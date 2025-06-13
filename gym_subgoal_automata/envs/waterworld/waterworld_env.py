@@ -195,10 +195,10 @@ class WaterWorldEnv(BaseEnv):
             vel = 0.0, 0.0
 
         while True:
-            pos = 2 * self.ball_radius + random_gen.random() * (self.max_x - 2 * self.ball_radius), \
-                  2 * self.ball_radius + random_gen.random() * (self.max_y - 2 * self.ball_radius)
-            if (not self._is_colliding(pos) or self._simple_reset) \
-                    and np.linalg.norm(self.agent.pos - np.array(pos), ord=2) > 4 * self.ball_radius:
+            pos = 2 * self.ball_radius + random_gen.random() * (self.max_x - 4 * self.ball_radius), \
+                  2 * self.ball_radius + random_gen.random() * (self.max_y - 4 * self.ball_radius)
+            if not self._is_colliding(pos) and np.linalg.norm(self.agent.pos - np.array(pos),
+                                                              ord=2) > 4 * self.ball_radius or self._simple_reset:
                 break
         return pos, vel
 
@@ -336,7 +336,8 @@ class WaterWorldEnv(BaseEnv):
         out = self.render()
         self.render_mode = curr_render_mode
 
-        img = self._resize_fn(out)
+        # img = self._resize_fn(out)
+        img = out
         return np.array(img)
 
     def _get_features(self):
