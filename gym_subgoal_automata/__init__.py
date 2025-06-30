@@ -167,6 +167,28 @@ register(
     entry_point='gym_subgoal_automata.envs.waterworld:WaterWorldRedAvoidMagentaEnv'
 )
 
+# Disappearing Waterworld
+
+register(
+    id="DisappearingWaterWorldRedEnv-v0",
+    entry_point="gym_subgoal_automata.envs.disappearing_waterworld:DisappearingWaterWorldRedEnv",
+)
+
+register(
+    id="DisappearingWaterWorldRedGreenEnv-v0",
+    entry_point="gym_subgoal_automata.envs.disappearing_waterworld:DisappearingWaterWorldRedGreenEnv",
+)
+
+register(
+    id="DisappearingWaterWorldRedGreenBlueEnv-v0",
+    entry_point="gym_subgoal_automata.envs.disappearing_waterworld:DisappearingWaterWorldRedGreenBlueEnv",
+)
+
+register(
+    id="DisappearingWaterWorldRedGreenBlueCyanEnv-v0",
+    entry_point="gym_subgoal_automata.envs.disappearing_waterworld:DisappearingWaterWorldRedGreenBlueCyanEnv",
+)
+
 # CraftWorld
 register(
     id='CraftWorldMakePlank-v0',
