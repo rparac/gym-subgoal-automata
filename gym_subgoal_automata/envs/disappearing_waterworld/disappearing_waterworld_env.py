@@ -159,10 +159,13 @@ class DisappearingWaterWorldEnv(BaseEnv):
         return self._get_symbols_from_sequence()
 
     def _get_current_collisions(self):
+        return self._get_current_ball_collisions(self.agent)
+
+    def _get_current_ball_collisions(self, b):
         collisions = set()
-        for b in self.balls:
-            if self.agent.is_colliding(b):
-                collisions.add(b)
+        for other_b in self.balls:
+            if other_b != b and b.is_colliding(other_b):
+                collisions.add(other_b)
         return collisions
 
     def is_terminal(self):
@@ -188,7 +191,9 @@ class DisappearingWaterWorldEnv(BaseEnv):
         # handling collisions
         for i in range(len(balls_all)):
             b = balls_all[i]
-            # walls
+            is_colliding = len(self._get_current_ball_collisions(b)) > 0
+
+            # walls or another balls
             if b.pos[0] - b.radius < 0 or b.pos[0] + b.radius > max_x:
                 # place ball against edge
                 if b.pos[0] - b.radius < 0:
@@ -205,6 +210,11 @@ class DisappearingWaterWorldEnv(BaseEnv):
                     b.pos[1] = max_y - b.radius
                 # reverse direction
                 b.vel *= np.array([1.0, -1.0])
+
+            if is_colliding and b != self.agent:
+                # Reverse direction for ball collisions; the agent "captures" the
+                #  ball, so it's direction doesn't reverse
+                b.vel *= np.array([-1.0, -1.0])
 
         observations = self.get_observations()
         reward, is_done = self._step(observations)
