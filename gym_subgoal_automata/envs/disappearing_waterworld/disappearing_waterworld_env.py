@@ -93,7 +93,7 @@ class DisappearingWaterWorldEnv(BaseEnv):
         self.agent = None
         self.balls = []
 
-        self.observation_space = spaces.Box(low=-1, high=1, shape=(52,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(self.max_x, self.max_y, 3), dtype=np.uint8)
         self.action_space = spaces.Discrete(5)
 
         # rendering attributes
