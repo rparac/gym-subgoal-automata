@@ -87,5 +87,7 @@ class VisualisationLogicWrapper:
             return self.reset()
 
         action = self.key_map[key]
-        obs, _, terminated, truncated, _ = self.env.step(action)
+        obs, r, terminated, truncated, _ = self.env.step(action)
+        if r != 0:
+            print(r)
         return [obs], ["Environment"]

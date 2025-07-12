@@ -21,7 +21,7 @@ class BaseEnv(ABC, gym.Env):
 
     @abstractmethod
     def step(self, action):
-        pass
+        raise NotImplementedError("Subclass must implement step method")
 
     @abstractmethod
     def is_terminal(self):

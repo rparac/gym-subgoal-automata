@@ -229,6 +229,7 @@ class SubgoalAutomaton:
     def get_distance(self, from_state, to_state, method):
         if self.distance_matrix is None:
             self._compute_distance_matrix(method)
+        assert self.distance_matrix is not None
         return self.distance_matrix[from_state][to_state]
 
     def get_distance_to_accept_state(self, from_state, method="min_distance"):

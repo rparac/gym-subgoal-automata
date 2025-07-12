@@ -5,7 +5,7 @@ from gym_subgoal_automata.utils.visualisation import interactive_visualisation_p
 
 seed = 1
 
-env = gym.make("DisappearingWaterWorldRedEnv-v0",
+env = gym.make("DisappearingWaterWorldRedGreenEnv-v0",
                params={"generation": "random", "environment_seed": 127, "hide_state_variables": True, "img_obs": True,
                        "simple_reset": False},
                render_mode="human",
