@@ -1,1 +1,4 @@
- 
+from gym_subgoal_automata.envs.visual_minecraft.visual_minecraft_env import VisualMinecraftEnv
+from gym_subgoal_automata.envs.visual_minecraft.visual_minecraft_env import VisualMinecraftGemDoorEnv
+from gym_subgoal_automata.envs.visual_minecraft.visual_minecraft_env import VisualMinecraftAvoidLavaPickaxeEnv
+from gym_subgoal_automata.envs.visual_minecraft.visual_minecraft_env import VisualMinecraftComplexEnv

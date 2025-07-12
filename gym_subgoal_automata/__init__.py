@@ -1,5 +1,21 @@
 from gymnasium.envs.registration import register
 
+# VisualMinecraft environments
+register(
+    id='VisualMinecraftGemDoorEnv-v0',
+    entry_point='gym_subgoal_automata.envs.visual_minecraft:VisualMinecraftGemDoorEnv',
+)
+
+register(
+    id='VisualMinecraftAvoidLavaPickaxeEnv-v0',
+    entry_point='gym_subgoal_automata.envs.visual_minecraft:VisualMinecraftAvoidLavaPickaxeEnv',
+)
+
+register(
+    id='VisualMinecraftComplexEnv-v0',
+    entry_point='gym_subgoal_automata.envs.visual_minecraft:VisualMinecraftComplexEnv',
+) 
+
 # OfficeWorld
 register(
     id='OfficeWorldDeliverCoffee-v0',
