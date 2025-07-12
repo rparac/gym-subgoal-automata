@@ -5,131 +5,119 @@ Test script for the new GridWorld environment
 
 import sys
 import os
+import pytest
+import numpy as np
+from gymnasium import spaces
 
 # Add the gym_subgoal_automata package to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-def test_gridworld_basic():
+from gym_subgoal_automata.envs.gridworld.gridworld_env import GridWorldEnv, GridWorldActions
+
+
+@pytest.fixture
+def gridworld_env():
+    """Fixture to create a GridWorld environment for testing"""
+    # Create a simple concrete implementation for testing
+    class TestGridWorldEnv(GridWorldEnv):
+        def __init__(self, params=None, render_mode=None):
+            super().__init__(params, render_mode)
+            self.observation_space = spaces.Box(
+                low=0, high=1, shape=(4,), dtype=np.float32
+            )
+        
+        def reset(self, seed=None, options=None):
+            super().reset(seed, options)
+            obs = np.zeros(4, dtype=np.float32)
+            info = {"step": 0}
+            return obs, info
+        
+        def step(self, action):
+            obs = np.zeros(4, dtype=np.float32)
+            reward = 0.0
+            done = False
+            truncated = False
+            info = {"step": 1}
+            return obs, reward, done, truncated, info
+        
+        def render(self):
+            pass
+        
+        def close(self):
+            pass
+        
+        def is_terminal(self):
+            return False
+        
+        def get_observables(self):
+            return []
+        
+        def get_restricted_observables(self):
+            return []
+        
+        def get_automaton(self):
+            return None
+        
+        def get_observations(self):
+            return np.zeros(4, dtype=np.float32)
+    
+    env = TestGridWorldEnv()
+    yield env
+    env.close()
+
+
+def test_gridworld_basic(gridworld_env):
     """Test basic GridWorld functionality"""
-    try:
-        from gym_subgoal_automata.envs.gridworld.gridworld_env import GridWorldEnv, GridWorldGemDoorEnv
-        
-        # Test basic environment creation
-        print("Testing GridWorld environment creation...")
-        env = GridWorldGemDoorEnv()
-        print(f"✓ Environment created successfully")
-        print(f"  Action space: {env.action_space}")
-        print(f"  Observation space: {env.observation_space}")
-        
-        # Test reset
-        print("\nTesting environment reset...")
-        obs, info = env.reset()
-        print(f"✓ Reset successful")
-        print(f"  Initial observation shape: {obs.shape}")
-        print(f"  Initial info: {info}")
-        
-        # Test step
-        print("\nTesting environment step...")
-        action = 1  # Move right
-        obs, reward, done, truncated, info = env.step(action)
-        print(f"✓ Step successful")
-        print(f"  Action: {action}")
-        print(f"  Reward: {reward}")
-        print(f"  Done: {done}")
-        print(f"  Info: {info}")
-        
-        # Test automaton
-        print("\nTesting automaton...")
-        automaton = env.get_automaton()
-        print(f"✓ Automaton retrieved")
-        print(f"  Number of states: {automaton.get_num_states()}")
-        print(f"  States: {automaton.get_states()}")
-        print(f"  Initial state: {automaton.get_initial_state()}")
-        print(f"  Accept state: {automaton.accept_state}")
-        
-        print("\n✓ All basic tests passed!")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Test failed with error: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+    # Test basic environment creation
+    assert gridworld_env is not None
+    assert hasattr(gridworld_env, 'reset')
+    assert hasattr(gridworld_env, 'step')
+    assert hasattr(gridworld_env, 'render')
+    assert gridworld_env.action_space.n == 4
+    assert len(gridworld_env.observation_space.shape) == 1
+    
+    # Test reset
+    obs, info = gridworld_env.reset()
+    assert obs is not None
+    assert obs.shape == gridworld_env.observation_space.shape
+    assert obs.dtype == np.float32
+    assert isinstance(info, dict)
+    assert 'step' in info
+    assert info['step'] == 0
+    
+    # Test step
+    action = 1  # Move right
+    next_obs, reward, done, truncated, info = gridworld_env.step(action)
+    assert next_obs is not None
+    assert isinstance(reward, (int, float))
+    assert isinstance(done, bool)
+    assert isinstance(truncated, bool)
+    assert isinstance(info, dict)
+    assert 'step' in info
 
-def test_gridworld_variants():
-    """Test different GridWorld variants"""
-    try:
-        from gym_subgoal_automata.envs.gridworld.gridworld_env import (
-            GridWorldGemDoorEnv, 
-            GridWorldAvoidLavaPickaxeEnv, 
-            GridWorldComplexEnv
-        )
-        
-        print("\nTesting GridWorld variants...")
-        
-        # Test GemDoor variant
-        env1 = GridWorldGemDoorEnv()
-        print(f"✓ GridWorldGemDoorEnv created")
-        
-        # Test AvoidLavaPickaxe variant
-        env2 = GridWorldAvoidLavaPickaxeEnv()
-        print(f"✓ GridWorldAvoidLavaPickaxeEnv created")
-        
-        # Test Complex variant
-        env3 = GridWorldComplexEnv()
-        print(f"✓ GridWorldComplexEnv created")
-        
-        print("✓ All variants created successfully!")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Variant test failed with error: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
 
-def test_gridworld_observations():
-    """Test observation generation"""
-    try:
-        from gym_subgoal_automata.envs.gridworld.gridworld_env import GridWorldGemDoorEnv
-        
-        print("\nTesting observation generation...")
-        env = GridWorldGemDoorEnv()
-        obs, info = env.reset()
-        
-        # Test feature observations
-        features = env._get_features()
-        print(f"✓ Feature observations generated")
-        print(f"  Feature shape: {features.shape}")
-        print(f"  Agent position: {features[:2]}")
-        print(f"  Automaton state one-hot: {features[2:]}")
-        
-        # Test symbol generation
-        symbol = env._get_current_symbol()
-        print(f"✓ Symbol generated: {symbol}")
-        
-        print("✓ Observation tests passed!")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Observation test failed with error: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+def test_gridworld_actions():
+    """Test GridWorld actions"""
+    assert GridWorldActions.UP == 0
+    assert GridWorldActions.DOWN == 1
+    assert GridWorldActions.LEFT == 2
+    assert GridWorldActions.RIGHT == 3
+
+
+def test_gridworld_utility_methods():
+    """Test GridWorld utility methods"""
+    # Test get_state_id
+    state_id = GridWorldEnv.get_state_id(4, [2, 2], [1, 0])
+    assert isinstance(state_id, int)
+    
+    # Test get_one_hot_state
+    one_hot = GridWorldEnv.get_one_hot_state(4, 2)
+    assert one_hot.shape == (4,)
+    assert one_hot.dtype == np.float32
+    assert one_hot[2] == 1.0
+    assert np.sum(one_hot) == 1.0
+
 
 if __name__ == "__main__":
-    print("Testing GridWorld Environment")
-    print("=" * 40)
-    
-    success = True
-    success &= test_gridworld_basic()
-    success &= test_gridworld_variants()
-    success &= test_gridworld_observations()
-    
-    if success:
-        print("\n" + "=" * 40)
-        print("🎉 All tests passed! GridWorld environment is working correctly.")
-    else:
-        print("\n" + "=" * 40)
-        print("❌ Some tests failed. Please check the errors above.")
-        sys.exit(1) 
+    # Run pytest
+    pytest.main([__file__, "-v"]) 

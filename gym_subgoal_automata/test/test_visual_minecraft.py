@@ -8,16 +8,6 @@ import os
 import pytest
 import numpy as np
 
-# Try to import matplotlib, but make it optional
-try:
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-    from matplotlib.patches import FancyBboxPatch, ConnectionPatch
-    MATPLOTLIB_AVAILABLE = True
-except ImportError:
-    MATPLOTLIB_AVAILABLE = False
-    print("matplotlib not available - automaton visualization will be text-only")
-
 # Add the gym_subgoal_automata package to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
